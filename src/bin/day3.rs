@@ -7,32 +7,15 @@ fn main() {
 }
 
 fn part1(input: &[String]) -> i32 {
-    let mut numbers = Vec::new();
-    let mut is_adjacent = false;
-    let mut number = 0;
-    input.iter().enumerate().for_each(|(y, line)| {
-        line.chars().enumerate().for_each(|(x, c)| {
-            if !c.is_ascii_digit() {
-                return;
-            }
-
-            number = number * 10 + c.to_digit(10).unwrap() as i32;
-
-            let neighbours = get_neighbours(x, y, input);
-            is_adjacent =
-                is_adjacent || neighbours.iter().any(|&n| n != '.' && !n.is_ascii_digit());
-
-            if x == input[y].len() - 1 || !input[y].chars().nth(x + 1).unwrap().is_ascii_digit() {
-                if is_adjacent {
-                    numbers.push(number);
-                }
-                is_adjacent = false;
-                number = 0;
-            }
-        })
-    });
-
-    numbers.iter().sum()
+    input.iter().enumerate().fold(0, |acc, (y, line)| {
+        acc + line
+            .chars()
+            .enumerate()
+            .filter(|c| c.1 != '.' && !c.1.is_ascii_digit())
+            .fold(0, |acc, (x, _)| {
+                acc + get_neighbour_numbers(x, y, input).iter().sum::<i32>()
+            })
+    })
 }
 fn part2(input: &[String]) -> i32 {
     input.iter().enumerate().fold(0, |acc, (y, line)| {
@@ -53,39 +36,6 @@ fn part2(input: &[String]) -> i32 {
 
 fn read_input<R: BufRead>(reader: R) -> Vec<String> {
     reader.lines().map_while(Result::ok).collect()
-}
-
-fn get_neighbours(x: usize, y: usize, input: &[String]) -> Vec<char> {
-    let mut neighbours = Vec::new();
-    let mut push = |y: usize, x: usize| {
-        neighbours.push(input[y].chars().nth(x).unwrap());
-    };
-
-    if x > 0 {
-        push(y, x - 1);
-    }
-    if x < input[y].len() - 1 {
-        push(y, x + 1);
-    }
-    if y > 0 {
-        push(y - 1, x);
-    }
-    if y < input.len() - 1 {
-        push(y + 1, x);
-    }
-    if x > 0 && y > 0 {
-        push(y - 1, x - 1);
-    }
-    if x < input[y].len() - 1 && y > 0 {
-        push(y - 1, x + 1);
-    }
-    if x > 0 && y < input.len() - 1 {
-        push(y + 1, x - 1);
-    }
-    if x < input[y].len() - 1 && y < input.len() - 1 {
-        push(y + 1, x + 1);
-    }
-    neighbours
 }
 
 fn get_neighbour_numbers(x: usize, y: usize, input: &[String]) -> Vec<i32> {
